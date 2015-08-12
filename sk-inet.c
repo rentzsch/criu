@@ -356,8 +356,6 @@ int inet_collect_one(struct nlmsghdr *h, int family, int type)
 
 	d->type = type;
 	d->src_port = ntohs(m->id.idiag_sport);
-	if (d->src_port == 7676)
-	   return 0;
 	d->dst_port = ntohs(m->id.idiag_dport);
 	d->state = m->idiag_state;
 	d->rqlen = m->idiag_rqueue;
@@ -369,6 +367,11 @@ int inet_collect_one(struct nlmsghdr *h, int family, int type)
 		d->shutdown = *(u8 *)RTA_DATA(tb[INET_DIAG_SHUTDOWN]);
 	else
 		pr_err_once("Can't check shutdown state of inet socket\n");
+
+    if (d->src_port == 7676)
+    {
+        return 0;
+    }
 
 	ret = sk_collect_one(m->idiag_inode, family, &d->sd);
 
