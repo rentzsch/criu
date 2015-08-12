@@ -191,7 +191,7 @@ static struct inet_sk_desc *gen_uncon_sk(int lfd, const struct fd_parms *p, int 
 
 	sk->sd.ino = p->stat.st_ino;
 
-    if (sk->port == 7676)
+    if (sk->src_port == 7676)
         return 0;
 
 	ret  = do_dump_opt(lfd, SOL_SOCKET, SO_DOMAIN, &sk->sd.family, sizeof(sk->sd.family));
