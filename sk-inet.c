@@ -210,8 +210,8 @@ static struct inet_sk_desc *gen_uncon_sk(int lfd, const struct fd_parms *p, int 
 		}
 
 		if (info.tcpi_state != TCP_CLOSE) {
-			pr_err("Socket state %d obtained but expected %d\n",
-			       info.tcpi_state, TCP_CLOSE);
+			pr_err("Socket state %d %d obtained but expected %d\n",
+			       sk->src_port, info.tcpi_state, TCP_CLOSE);
 			goto err;
 		}
 
