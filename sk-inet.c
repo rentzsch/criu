@@ -244,13 +244,11 @@ static int do_dump_one_inet_fd(int lfd, u32 id, const struct fd_parms *p, int fa
 	if (IS_ERR(sk))
 		goto err;
 	if (!sk) {
+	   return 0;
 		sk = gen_uncon_sk(lfd, p, proto);
 		if (!sk)
 			goto err;
 	}
-
-    if (sk->src_port == 7676)
-        return 0;
 
 	if (!can_dump_inet_sk(sk, proto))
 		goto err;
