@@ -185,8 +185,8 @@ static struct inet_sk_desc *gen_uncon_sk(int lfd, const struct fd_parms *p, int 
 			goto err;
 		}
 	} else if (ret == 0) {
-		pr_err("Name resolved on unconnected socket\n");
-		goto err;
+//		pr_err("Name resolved on unconnected socket\n");
+//		goto err;
 	}
 
 	sk->sd.ino = p->stat.st_ino;
