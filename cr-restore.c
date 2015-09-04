@@ -1652,7 +1652,7 @@ static void finalize_restore(int status)
 
 		xfree(ctl);
 
-		if (item->state == TASK_STOPPED)
+		if (item->state == TASK_STOPPED || true)
 			kill(item->pid.real, SIGSTOP);
 detach:
 		for (i = 0; i < item->nr_threads; i++) {
