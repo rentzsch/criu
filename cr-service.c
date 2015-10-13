@@ -356,7 +356,6 @@ static int setup_opts_from_req(int sk, CriuOpts *req)
 		if (ext_mount_add(req->ext_mnt[i]->key, req->ext_mnt[i]->val))
 			goto err;
 	}
-	ext_mount_add("./app/available_modules", "/mnt/stretch/all_modules_dupe");
 
 	if (req->n_inherit_fd && !opts.swrk_restore) {
 		pr_err("inherit_fd is not allowed in standalone service\n");
