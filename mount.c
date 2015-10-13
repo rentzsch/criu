@@ -37,9 +37,9 @@
  * namespace, the val is some name that will be put into image
  * instead of the mount point's root path.
  *
- * On restore the key is the name from the image (the one 
- * mentioned above) and the val is the path in criu's mount 
- * namespace that will become the mount point's root, i.e. -- 
+ * On restore the key is the name from the image (the one
+ * mentioned above) and the val is the path in criu's mount
+ * namespace that will become the mount point's root, i.e. --
  * be bind mounted to the respective mountpoint.
  */
 
@@ -570,13 +570,28 @@ static int validate_mounts(struct mount_info *info, bool for_dump)
 {
 	struct mount_info *m, *t;
 
-	for (m = info; m; m = m->next) {
-		if (m->parent == NULL || m->is_ns_root)
-			/* root mount can be any */
-			continue;
+	pr_debug("wolf entering validate_mounts for_dump:%d\n", for_dump);
 
-		if (m->shared_id && validate_shared(m))
+	for (m = info; m; m = m->next) {
+		pr_debug(
+			"wolf validating root:%s mountpoint:%s ns_mountpoint:%s external:%p need_plugin:%d\n",
+			m->root,
+			m->mountpoint,
+			m->ns_mountpoint,
+			m->external,
+			m->need_plugin
+		);
+
+		if (m->parent == NULL || m->is_ns_root) {
+			/* root mount can be any */
+			pr_debug("wolf decided root mount can be any\n");
+			continue;
+		}
+
+		if (m->shared_id && validate_shared(m)) {
+			pr_debug("wolf shared_id && validate_shared, returning -1\n");
 			return -1;
+		}
 
 		/*
 		 * Mountpoint can point to / of an FS. In that case this FS
@@ -593,37 +608,52 @@ static int validate_mounts(struct mount_info *info, bool for_dump)
 			if (m->fstype->code == FSTYPE__UNSUPPORTED) {
 				pr_err("FS mnt %s dev %#x root %s unsupported id %x\n",
 						m->mountpoint, m->s_dev, m->root, m->mnt_id);
-				return -1;
+				// return -1; // wolf: disabled so we can dump with external fuse mountpoints
+			} else {
+				pr_debug("wolf supported root-mounted detected\n");
 			}
 		} else {
+			pr_debug("wolf non-root-mounted detected\n");
 			t = find_fsroot_mount_for(m);
 			if (!t) {
+				pr_debug("wolf fsroot not found\n");
 				int ret;
 
 				if (for_dump) {
+					pr_debug("wolf running plugins for dump\n");
 					ret = run_plugins(DUMP_EXT_MOUNT, m->mountpoint, m->mnt_id);
-					if (ret == 0)
+					pr_debug("wolf run_plugins result:%d\n", ret);
+					if (ret == 0) {
+						pr_debug("wolf setting need_plugin to true\n");
 						m->need_plugin = true;
-					else if (ret == -ENOTSUP)
+					} else if (ret == -ENOTSUP) {
+						pr_debug("wolf ENOTSUP, try_resolve_ext_mount\n");
 						ret = try_resolve_ext_mount(m);
+					}
 				} else {
-					if (m->need_plugin || m->external)
+					if (m->need_plugin || m->external) {
 						/*
 						 * plugin should take care of this one
 						 * in restore_ext_mount, or do_bind_mount
 						 * will mount it as external
 						 */
+						pr_debug("wolf need_plugin or external set\n");
 						ret = 0;
-					else
+					} else {
+						pr_debug("wolf setting ENOTSUP\n");
 						ret = -ENOTSUP;
+					}
 				}
 
 				if (ret < 0) {
 					if (ret == -ENOTSUP)
 						pr_err("%d:%s doesn't have a proper root mount\n",
 								m->mnt_id, m->mountpoint);
+					pr_debug("wolf ret:%d returning -1\n", ret);
 					return -1;
 				}
+			} else {
+				pr_debug("wolf fsroot found\n");
 			}
 		}
 
@@ -638,6 +668,7 @@ static int validate_mounts(struct mount_info *info, bool for_dump)
 		}
 	}
 
+	pr_debug("wolf exiting validate_mounts with result of 0\n");
 	return 0;
 }
 
@@ -1472,14 +1503,23 @@ static int do_new_mount(struct mount_info *mi)
 	if (!src)
 		return -1;
 
+	pr_debug("wolf about to mount %s %s %s %d %s\n", src, mi->mountpoint, tp->name, mi->flags & (~MS_SHARED), mi->options);
+
 	if (mount(src, mi->mountpoint, tp->name,
 			mi->flags & (~MS_SHARED), mi->options) < 0) {
-		pr_perror("Can't mount at %s", mi->mountpoint);
+		pr_perror("wolf Can't mount at %s", mi->mountpoint);
 		return -1;
+	} else {
+		pr_debug("wolf mount succeeded\n");
 	}
 
-	if (restore_shared_options(mi, 0, mi->shared_id, 0))
+	pr_debug("wolf about to restore_shared_options\n");
+	if (restore_shared_options(mi, 0, mi->shared_id, 0)) {
+		pr_debug("wolf restore_shared_options failed\n");
 		return -1;
+	} else {
+		pr_debug("wolf restore_shared_options succeeded\n");
+	}
 
 	mi->mounted = true;
 

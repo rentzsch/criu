@@ -1009,10 +1009,17 @@ struct mount_info *parse_mountinfo(pid_t pid, struct ns_id *nsid)
 			goto err;
 		}
 
-		pr_info("\ttype %s source %s mnt_id %#x s_dev %#x %s @ %s flags %#x options %s\n",
-				fst ? : new->fstype->name, new->source,
-				new->mnt_id, new->s_dev, new->root, new->mountpoint,
-				new->flags, new->options);
+		pr_info("\ttype %s source %s mnt_id %#x s_dev %#x root %s mountpoint %s flags %#x external %s options %s\n",
+			fst ? : new->fstype->name,
+			new->source,
+			new->mnt_id,
+			new->s_dev,
+			new->root,
+			new->mountpoint,
+			new->flags,
+			new->external ? "true" : "false",
+			new->options
+		);
 
 		if (new->fstype->parse) {
 			ret = new->fstype->parse(new);
