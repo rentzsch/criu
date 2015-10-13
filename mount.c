@@ -591,9 +591,20 @@ static int validate_mounts(struct mount_info *info, bool for_dump)
 
 		if (fsroot_mounted(m)) {
 			if (m->fstype->code == FSTYPE__UNSUPPORTED) {
+#if 1
+				pr_debug("root-mounted unsupported file system detected, assuming external fuse\n");
+				int ret = try_resolve_ext_mount(m);
+				if (ret < 0) {
+					if (ret == -ENOTSUP)
+						pr_err("%d:%s doesn't have a proper root mount\n",
+								m->mnt_id, m->mountpoint);
+					return -1;
+				}
+#else
 				pr_err("FS mnt %s dev %#x root %s unsupported id %x\n",
 						m->mountpoint, m->s_dev, m->root, m->mnt_id);
 				return -1;
+#endif
 			}
 		} else {
 			t = find_fsroot_mount_for(m);
