@@ -433,6 +433,7 @@ int main(int argc, char *argv[], char *envp[])
 			pr_msg("Version: %s\n", CRIU_VERSION);
 			if (strcmp(CRIU_GITID, "0"))
 				pr_msg("GitID: %s\n", CRIU_GITID);
+			pr_msg("Tonic Release: 1.5.2-tonic-fix-socket-fuse\n");
 			return 0;
 		case 'h':
 			usage_error = false;
